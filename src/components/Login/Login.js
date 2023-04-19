@@ -18,11 +18,23 @@ const emailReducer = (state, action) => {
   return {value: '', isValid: false};
 };
 
+const passwordReducer = (state, action) => {
+  if(action.type === 'User_Input'){
+    return {value: action.val, isValid: action.val.trim().length > 6};
+  }
+  if(action.type === 'Input_Blur'){
+    return {value: state.value , isValid: state.value.trim().length > 6}
+    //state.value will store the previous snapshot of value field
+  }
+
+  return {value: '', isValid: false};
+};
+
 const Login = (props) => {
   // const [enteredEmail, setEnteredEmail] = useState('');
   // const [emailIsValid, setEmailIsValid] = useState();
-  const [enteredPassword, setEnteredPassword] = useState('');
-  const [passwordIsValid, setPasswordIsValid] = useState();
+  // const [enteredPassword, setEnteredPassword] = useState('');
+  // const [passwordIsValid, setPasswordIsValid] = useState();
   const [formIsValid, setFormIsValid] = useState(false);
 
   const [emailState, dispatchEmail] = useReducer(emailReducer, {
@@ -30,15 +42,24 @@ const Login = (props) => {
     isValid: null,
   });
 
+  const [passwordState, dispatchPassword] = useReducer(passwordReducer, {
+    value: '',
+    isValid: null,
+  }); 
+
+  //this is used as an alias so that when the condition is satisfied it wont validate again
+  //after password length is 6 then it wont check again 
+  const {isValid: emailIsValid} = emailState;
+  const {isValid: passwordIsValid}= passwordState;
   //this is run when the email or password is changed rather than a loop 
   //we dont not want to send the req unnecessary when the user is typing 
   //so we are going to use decboucing that is sending after a certain pause to reduce the traffic
   useEffect(() => {
     
     const identifier = setTimeout(() => {
-      console.log('sending request');//first time it runs first
+      console.log('checking validity');//first time it runs first
       setFormIsValid(
-        emailState.value.includes('@') && enteredPassword.trim().length > 6
+        emailIsValid && passwordIsValid 
       );
     }, 500);//500 milli seconds
 
@@ -47,7 +68,7 @@ const Login = (props) => {
       clearTimeout(identifier);//this will execute the identifier after a certain timeout
     };
    
-  }, [emailState.value, enteredPassword]);
+  }, [emailIsValid, passwordIsValid]);
 
   const emailChangeHandler = (event) => {
     dispatchEmail({type: 'User_Input', val: event.target.value});
@@ -56,24 +77,21 @@ const Login = (props) => {
   };
 
   const passwordChangeHandler = (event) => {
-    setEnteredPassword(event.target.value);
+    dispatchPassword({type: 'User_Input', val: event.target.value});
 
-    setFormIsValid(
-      event.target.value.trim().length > 6 && emailState.value.includes('@')
-    );
   };
 
   const validateEmailHandler = () => {
-    dispatchEmail({type: 'Input_Blur', })
+    dispatchEmail({type: 'Input_Blur', });
   };
 
   const validatePasswordHandler = () => {
-    setPasswordIsValid(enteredPassword.trim().length > 6);
+    dispatchPassword({type: 'Input_Blur'});
   };
 
   const submitHandler = (event) => {
     event.preventDefault();
-    props.onLogin(emailState.value, enteredPassword);
+    props.onLogin(emailState.value, passwordState.value);
   };
 
   return (
@@ -95,14 +113,14 @@ const Login = (props) => {
         </div>
         <div
           className={`${classes.control} ${
-            passwordIsValid === false ? classes.invalid : ''
+            passwordState.isValid === false ? classes.invalid : ''
           }`}
         >
           <label htmlFor="password">Password</label>
           <input
             type="password"
             id="password"
-            value={enteredPassword}
+            value={passwordState.value}
             onChange={passwordChangeHandler}
             onBlur={validatePasswordHandler}
           />
