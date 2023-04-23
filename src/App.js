@@ -37,9 +37,12 @@ function App() {
   return (
     <AuthContext.Provider value={{
       isLoggedIn: isLoggedIn,
+      onLogout: logoutHandler,
   }}>
-      <MainHeader onLogout={logoutHandler} />
+      <MainHeader />
       <main>
+        {/* we will not use the useContext in login and home because we are directly using it there 
+        and not just sending it to some other file */}
         {!isLoggedIn && <Login onLogin={loginHandler} />}
         {isLoggedIn && <Home onLogout={logoutHandler} />}
       </main>
