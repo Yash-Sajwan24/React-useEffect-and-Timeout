@@ -39,7 +39,7 @@ const Login = (props) => {
 
   const [emailState, dispatchEmail] = useReducer(emailReducer, {
     value: '', 
-    isValid: null,
+    isValid: null,//initial values
   });
 
   const [passwordState, dispatchPassword] = useReducer(passwordReducer, {
@@ -51,6 +51,7 @@ const Login = (props) => {
   //after password length is 6 then it wont check again 
   const {isValid: emailIsValid} = emailState;
   const {isValid: passwordIsValid}= passwordState;
+
   //this is run when the email or password is changed rather than a loop 
   //we dont not want to send the req unnecessary when the user is typing 
   //so we are going to use decboucing that is sending after a certain pause to reduce the traffic
@@ -68,7 +69,7 @@ const Login = (props) => {
       clearTimeout(identifier);//this will execute the identifier after a certain timeout
     };
    
-  }, [emailIsValid, passwordIsValid]);
+  }, [emailIsValid, passwordIsValid]);//this is dependent on validity of the email and password
 
   const emailChangeHandler = (event) => {
     dispatchEmail({type: 'User_Input', val: event.target.value});
